@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'delegate.dart';
-import 'connection.dart';
+import 'model.dart';
 import 'layout.dart';
 
 class VirtualKeyboard extends StatefulWidget {
@@ -11,19 +10,21 @@ class VirtualKeyboard extends StatefulWidget {
 }
 
 class _VirtualKeyboardState extends State<VirtualKeyboard>
-    implements TextInputSource {
-  TextInputDelegate? _delegate;
+    with TextInputControl {
+  TextInputModel? _model;
   TextInputLayout _layout = TextInputLayout();
 
   @override
   void initState() {
     super.initState();
-    TextInput.setSource(this);
+    TextInput.addInputControl(this);
+    TextInput.setCurrentInputControl(this);
   }
 
   @override
   void dispose() {
-    TextInput.setSource(TextInput.defaultSource);
+    TextInput.removeInputControl(this);
+    TextInput.setCurrentInputControl(PlatformTextInputControl.instance);
     super.dispose();
   }
 
@@ -40,8 +41,8 @@ class _VirtualKeyboardState extends State<VirtualKeyboard>
               Expanded(
                 child: VirtualKeyboardRow(
                   keys: keys,
-                  enabled: _delegate != null,
-                  onInput: (String key) => _delegate!.addText(key),
+                  enabled: _model != null,
+                  onInput: _handleKeyPress,
                 ),
               ),
           ],
@@ -50,34 +51,30 @@ class _VirtualKeyboardState extends State<VirtualKeyboard>
     );
   }
 
-  @override
-  void init() {}
+  void _handleKeyPress(String key) {
+    updateEditingValue(_model!.insert(key));
+  }
 
   @override
-  void cleanup() {}
-
-  @override
-  TextInputConnection attach(TextInputClient client) {
-    setState(() => _delegate = TextInputDelegate(client));
-
-    return CallbackConnection(
-      client,
-      onInputTypeChanged: (TextInputType inputType) {
-        setState(() => _layout = TextInputLayout(inputType));
-      },
-      onEditingValueSet: (TextEditingValue value) {
-        _delegate!.reset(value);
-      },
-    );
+  void attach(TextInputClient client, TextInputConfiguration configuration) {
+    _model = TextInputModel();
+    updateConfig(configuration);
   }
 
   @override
   void detach(TextInputClient client) {
-    setState(() => _delegate = null);
+    setState(() => _model = null);
   }
 
   @override
-  void finishAutofillContext({bool shouldSave = true}) {}
+  void setEditingState(TextEditingValue value) {
+    _model!.reset(value);
+  }
+
+  @override
+  void updateConfig(TextInputConfiguration configuration) {
+    setState(() => _layout = TextInputLayout(configuration.inputType));
+  }
 }
 
 class VirtualKeyboardRow extends StatelessWidget {
