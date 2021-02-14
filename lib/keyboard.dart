@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import 'model.dart';
+import 'input_control.dart';
 import 'layout.dart';
 
 class VirtualKeyboard extends StatefulWidget {
@@ -9,22 +8,18 @@ class VirtualKeyboard extends StatefulWidget {
   _VirtualKeyboardState createState() => _VirtualKeyboardState();
 }
 
-class _VirtualKeyboardState extends State<VirtualKeyboard>
-    with TextInputControl {
-  TextInputModel? _model;
-  TextInputLayout _layout = TextInputLayout();
+class _VirtualKeyboardState extends State<VirtualKeyboard> {
+  final _inputControl = VirtualKeyboardControl();
 
   @override
   void initState() {
     super.initState();
-    TextInput.addInputControl(this);
-    TextInput.setCurrentInputControl(this);
+    _inputControl.register();
   }
 
   @override
   void dispose() {
-    TextInput.removeInputControl(this);
-    TextInput.setCurrentInputControl(PlatformTextInputControl.instance);
+    _inputControl.unregister();
     super.dispose();
   }
 
@@ -35,45 +30,32 @@ class _VirtualKeyboardState extends State<VirtualKeyboard>
       child: Container(
         color: Theme.of(context).backgroundColor,
         height: MediaQuery.of(context).size.height / 3,
-        child: Column(
-          children: [
-            for (final keys in _layout.keys)
-              Expanded(
-                child: VirtualKeyboardRow(
-                  keys: keys,
-                  enabled: _model != null,
-                  onInput: _handleKeyPress,
-                ),
-              ),
-          ],
-        ),
+        child: ValueListenableBuilder<TextInputLayout>(
+            valueListenable: _inputControl.layout,
+            builder: (_, layout, __) {
+              return Column(
+                children: [
+                  for (final keys in layout.keys)
+                    Expanded(
+                      child: ValueListenableBuilder<bool>(
+                          valueListenable: _inputControl.attached,
+                          builder: (_, attached, __) {
+                            return VirtualKeyboardRow(
+                              keys: keys,
+                              enabled: attached,
+                              onInput: _handleKeyPress,
+                            );
+                          }),
+                    ),
+                ],
+              );
+            }),
       ),
     );
   }
 
   void _handleKeyPress(String key) {
-    updateEditingValue(_model!.insert(key));
-  }
-
-  @override
-  void attach(TextInputClient client, TextInputConfiguration configuration) {
-    _model = TextInputModel();
-    updateConfig(configuration);
-  }
-
-  @override
-  void detach(TextInputClient client) {
-    setState(() => _model = null);
-  }
-
-  @override
-  void setEditingState(TextEditingValue value) {
-    _model!.reset(value);
-  }
-
-  @override
-  void updateConfig(TextInputConfiguration configuration) {
-    setState(() => _layout = TextInputLayout(configuration.inputType));
+    _inputControl.processInput(key);
   }
 }
 
