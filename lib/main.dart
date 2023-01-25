@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'keyboard.dart';
 
@@ -73,7 +72,7 @@ class HomePageState extends State<HomePage> {
           Theme(
             data: ThemeData.dark().copyWith(
               elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(primary: Colors.grey),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
               ),
             ),
             child: VirtualKeyboard(),

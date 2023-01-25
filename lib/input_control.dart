@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'model.dart';
 import 'layout.dart';
 
-class VirtualKeyboardControl extends TextInputControl {
+class VirtualKeyboardControl with TextInputControl {
   TextInputModel? _model;
   final _attached = ValueNotifier<bool>(false);
   final _layout = ValueNotifier<TextInputLayout>(TextInputLayout());
@@ -23,7 +23,7 @@ class VirtualKeyboardControl extends TextInputControl {
   void processInput(String input) {
     final value = _model!.insert(input);
     setEditingState(value);
-    updateEditingValue(value);
+    TextInput.updateEditingValue(value);
   }
 
   @override

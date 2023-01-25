@@ -27,29 +27,31 @@ class _VirtualKeyboardState extends State<VirtualKeyboard> {
   Widget build(BuildContext context) {
     return FocusScope(
       canRequestFocus: false,
-      child: Container(
-        color: Theme.of(context).backgroundColor,
-        height: MediaQuery.of(context).size.height / 3,
-        child: ValueListenableBuilder<TextInputLayout>(
-            valueListenable: _inputControl.layout,
-            builder: (_, layout, __) {
-              return Column(
-                children: [
-                  for (final keys in layout.keys)
-                    Expanded(
-                      child: ValueListenableBuilder<bool>(
-                          valueListenable: _inputControl.attached,
-                          builder: (_, attached, __) {
-                            return VirtualKeyboardRow(
-                              keys: keys,
-                              enabled: attached,
-                              onInput: _handleKeyPress,
-                            );
-                          }),
-                    ),
-                ],
-              );
-            }),
+      child: TextFieldTapRegion(
+        child: Container(
+          color: Theme.of(context).colorScheme.background,
+          height: MediaQuery.of(context).size.height / 3,
+          child: ValueListenableBuilder<TextInputLayout>(
+              valueListenable: _inputControl.layout,
+              builder: (_, layout, __) {
+                return Column(
+                  children: [
+                    for (final keys in layout.keys)
+                      Expanded(
+                        child: ValueListenableBuilder<bool>(
+                            valueListenable: _inputControl.attached,
+                            builder: (_, attached, __) {
+                              return VirtualKeyboardRow(
+                                keys: keys,
+                                enabled: attached,
+                                onInput: _handleKeyPress,
+                              );
+                            }),
+                      ),
+                  ],
+                );
+              }),
+        ),
       ),
     );
   }
@@ -68,7 +70,7 @@ class VirtualKeyboardRow extends StatelessWidget {
     required bool enabled,
     required List<String> keys,
     required ValueSetter<String> onInput,
-  })   : _enabled = enabled,
+  })  : _enabled = enabled,
         _keys = keys,
         _onInput = onInput;
 
