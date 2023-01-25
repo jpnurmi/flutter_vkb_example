@@ -1,6 +1,6 @@
 # flutter_vkb_example
 
-A custom virtual keyboard example for Flutter.
+A custom virtual keyboard example for Flutter. [Web Demo](https://jpnurmi.dev/flutter_vkb_example/).
 
 | **NOTE:** Requires Flutter 3.7.0 or later. |
 | --- |
